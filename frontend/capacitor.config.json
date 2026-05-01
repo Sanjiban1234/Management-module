@@ -1,0 +1,13 @@
+{
+  "appId": "com.gym.app",
+  "appName": "Gym App",
+  "webDir": "dist",
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  },
+  "server": {
+    "cleartext": true
+  }
+}

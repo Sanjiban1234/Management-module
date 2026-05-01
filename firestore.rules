@@ -1,0 +1,41 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    match /admins/{adminId} {
+      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == adminId);
+      allow write: if false;
+    }
+
+    match /members/{memberId} {
+      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == memberId);
+      allow write: if false;
+    }
+
+    match /attendance/{attendanceId} {
+      allow read: if isAdmin() ||
+        (isSignedIn() && resource.data.member_id == request.auth.uid);
+      allow write: if false;
+    }
+
+    match /payments/{paymentId} {
+      allow read: if isAdmin() ||
+        (isSignedIn() && resource.data.member_id == request.auth.uid);
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
