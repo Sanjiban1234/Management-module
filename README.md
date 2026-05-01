@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Gym Management & Attendance System
 
 Full-stack gym management system with:
@@ -180,3 +181,7 @@ firebase deploy --only firestore:rules,firestore:indexes,hosting
 - Attendance logic lives only in the backend.
 - FCM token storage and outbound notifications are routed through the backend.
 
+=======
+# management-app
+This is my first full stack development, This app emphasizes on Management of small institutions such as gym or Club room.
+>>>>>>> 7b40b89d9c35382aeba43c9ac1eb11227fd120a1
