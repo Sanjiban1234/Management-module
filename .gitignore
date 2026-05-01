@@ -141,9 +141,12 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+<<<<<<< HEAD
 
 # Google and Firebase secrets
 google-services.json
 serviceAccountKey.json
 *.json.credential
 frontend/public/firebase-messaging-sw.js
+=======
+>>>>>>> 07b85c50054ac830f424c8870a9588b4e0c9bfc7
