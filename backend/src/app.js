@@ -36,8 +36,19 @@ app.use(limiter);
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Echo the exact origin to allow credentials
-      callback(null, origin || "*");
+      // Allow local origins for mobile apps (Capacitor)
+      const allowedOrigins = [
+        "http://localhost",
+        "capacitor://localhost",
+        "http://localhost:5173"
+      ];
+      
+      if (!origin || allowedOrigins.includes(origin) || origin.startsWith("http://192.168.")) {
+        callback(null, true);
+      } else {
+        // Fallback: Echo the origin to allow it dynamically
+        callback(null, origin);
+      }
     },
     credentials: true
   })
