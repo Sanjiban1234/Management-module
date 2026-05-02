@@ -45,6 +45,14 @@ app.use(
 app.use(express.json());
 app.use(morgan("dev"));
 
+app.get("/", (_request, response) => {
+  response.json({
+    message: "Gym Management API is live!",
+    status: "ok",
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.get("/health", (_request, response) => {
   response.json({
     status: "ok"
