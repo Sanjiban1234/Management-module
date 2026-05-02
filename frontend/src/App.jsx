@@ -88,6 +88,7 @@ function App() {
   const [sortOrder, setSortOrder] = useState("asc");
   const [modal, setModal] = useState({ type: null, data: null });
   const [plans, setPlans] = useState([]);
+  const [admins, setAdmins] = useState([]);
   const [activityLogs, setActivityLogs] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeView, setActiveView] = useState("dashboard");
@@ -424,6 +425,7 @@ function App() {
         apiRequest("/attendance", { token: idToken }),
         apiRequest("/dashboard/stats", { token: idToken }),
         apiRequest("/plans", { token: idToken }),
+        apiRequest("/admins", { token: idToken }),
         apiRequest("/dashboard/activity?limit=100", { token: idToken })
       ]);
 
@@ -431,6 +433,7 @@ function App() {
       setAttendance(attendanceData.attendance);
       setStats(statsData);
       setPlans(plansData.plans);
+      setAdmins(adminsData.admins || []);
       setActivityLogs(activityData.activity || []);
     } catch (loadError) {
       setError(loadError.message);
@@ -585,6 +588,33 @@ function App() {
     }
   }
 
+  async function handleCreateAdmin(event) {
+    event.preventDefault();
+    setError("");
+    setFeedback("");
+
+    const form = event.target;
+    const payload = {
+      name: form.name.value,
+      email: form.email.value,
+      password: form.password.value
+    };
+
+    try {
+      const response = await apiRequest("/admins", {
+        token: idToken,
+        method: "POST",
+        body: payload
+      });
+
+      setAdmins((current) => [...current, response.admin]);
+      form.reset();
+      setFeedback("Admin created successfully.");
+    } catch (adminError) {
+      setError(adminError.message);
+    }
+  }
+
   async function handleScan(scannedToken) {
     setError("");
     setFeedback("");
@@ -693,6 +723,7 @@ function App() {
             <button className={`nav-item ${activeView === 'live' ? 'active' : ''}`} onClick={() => { setActiveView('live'); setSidebarOpen(false); }}>🟢 Live</button>
             <button className={`nav-item ${activeView === 'members' ? 'active' : ''}`} onClick={() => { setActiveView('members'); setSidebarOpen(false); }}>👥 Members</button>
             <button className={`nav-item ${activeView === 'plans' ? 'active' : ''}`} onClick={() => { setActiveView('plans'); setSidebarOpen(false); }}>📋 Plans</button>
+            <button className={`nav-item ${activeView === 'admins' ? 'active' : ''}`} onClick={() => { setActiveView('admins'); setSidebarOpen(false); }}>🔑 Admins</button>
             <button className={`nav-item ${activeView === 'activity' ? 'active' : ''}`} onClick={() => { setActiveView('activity'); setSidebarOpen(false); }}>🧾 Activity</button>
             <button className={`nav-item ${activeView === 'broadcast' ? 'active' : ''}`} onClick={() => { setActiveView('broadcast'); setSidebarOpen(false); }}>📢 Broadcast</button>
           </nav>
@@ -769,6 +800,8 @@ function App() {
             setAttendanceFilterDate={setAttendanceFilterDate}
             attendanceFilterStatus={attendanceFilterStatus}
             setAttendanceFilterStatus={setAttendanceFilterStatus}
+            admins={admins}
+            onCreateAdmin={handleCreateAdmin}
           />
         )}
 
@@ -1285,6 +1318,48 @@ function AdminDashboard({
                           <button className="quick-action-btn danger" onClick={() => onDeleteMember(member.id)}>🗑️</button>
                         </div>
                       </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </>
+      )}
+
+      {activeView === 'admins' && (
+        <>
+          <section className="panel">
+            <div className="section-head">
+              <h3>Create Admin</h3>
+            </div>
+            <form className="stack-form" onSubmit={onCreateAdmin}>
+              <input name="name" placeholder="Full name" required />
+              <input name="email" type="email" placeholder="Email" required />
+              <input name="password" type="password" placeholder="Password" required minLength="6" />
+              <button className="primary-button" type="submit">Create Admin</button>
+            </form>
+          </section>
+
+          <section className="panel wide-panel">
+            <div className="section-head">
+              <h3>Admin Directory</h3>
+            </div>
+            <div className="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Admin</th>
+                    <th>Email</th>
+                    <th>Created</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {admins.map((admin) => (
+                    <tr key={admin.id}>
+                      <td><strong>{admin.name}</strong></td>
+                      <td>{admin.email}</td>
+                      <td>{formatDateOnly(admin.created_at)}</td>
                     </tr>
                   ))}
                 </tbody>

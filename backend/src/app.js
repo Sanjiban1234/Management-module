@@ -13,6 +13,7 @@ import { dashboardRoutes } from "./routes/dashboardRoutes.js";
 import { memberRoutes } from "./routes/memberRoutes.js";
 import { notificationRoutes } from "./routes/notificationRoutes.js";
 import { planRoutes } from "./routes/planRoutes.js";
+import { adminRoutes } from "./routes/adminRoutes.js";
 
 const app = express();
 
@@ -76,6 +77,7 @@ app.use("/attendance", verifyFirebaseToken, attendanceRoutes);
 app.use("/dashboard", verifyFirebaseToken, dashboardRoutes);
 app.use("/notifications", verifyFirebaseToken, notificationRoutes);
 app.use("/plans", verifyFirebaseToken, planRoutes);
+app.use("/admins", verifyFirebaseToken, adminRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
