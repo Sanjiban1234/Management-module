@@ -419,25 +419,29 @@ function App() {
   }
 
   async function loadAdminData() {
-    try {
-      const [membersData, attendanceData, statsData, plansData, activityData] = await Promise.all([
-        apiRequest("/members", { token: idToken }),
-        apiRequest("/attendance", { token: idToken }),
-        apiRequest("/dashboard/stats", { token: idToken }),
-        apiRequest("/plans", { token: idToken }),
-        apiRequest("/admins", { token: idToken }),
-        apiRequest("/dashboard/activity?limit=100", { token: idToken })
-      ]);
+    setLoading(true);
+    
+    // Helper to run a request safely
+    const safeRequest = async (path, setter, key) => {
+      try {
+        const data = await apiRequest(path, { token: idToken });
+        setter(key ? data[key] : data);
+      } catch (err) {
+        console.error(`Failed to load ${path}:`, err);
+        setError(`Error loading ${path}: ${err.message}`);
+      }
+    };
 
-      setMembers(membersData.members);
-      setAttendance(attendanceData.attendance);
-      setStats(statsData);
-      setPlans(plansData.plans);
-      setAdmins(adminsData.admins || []);
-      setActivityLogs(activityData.activity || []);
-    } catch (loadError) {
-      setError(loadError.message);
-    }
+    await Promise.allSettled([
+      safeRequest("/members", setMembers, "members"),
+      safeRequest("/attendance", setAttendance, "attendance"),
+      safeRequest("/dashboard/stats", setStats),
+      safeRequest("/plans", setPlans, "plans"),
+      safeRequest("/admins", setAdmins, "admins"),
+      safeRequest("/dashboard/activity?limit=100", setActivityLogs, "activity")
+    ]);
+
+    setLoading(false);
   }
 
   async function loadMemberData(memberId) {
@@ -858,13 +862,15 @@ function AuthPanel({
     <section className="panel auth-panel">
       <div className="section-head">
         <h3>{authMode === "signin" ? `${portalName} Sign In` : `Create ${portalName} Account`}</h3>
-        <button
-          className="link-button"
-          type="button"
-          onClick={() => setAuthMode(authMode === "signin" ? "signup" : "signin")}
-        >
-          {authMode === "signin" ? "Need an account?" : "Already have an account?"}
-        </button>
+        {loginTarget !== "admin" && (
+          <button
+            className="link-button"
+            type="button"
+            onClick={() => setAuthMode(authMode === "signin" ? "signup" : "signin")}
+          >
+            {authMode === "signin" ? "Need an account?" : "Already have an account?"}
+          </button>
+        )}
       </div>
       <form className="stack-form" onSubmit={onSubmit}>
         <input
@@ -944,7 +950,9 @@ function AdminDashboard({
   attendanceFilterDate,
   setAttendanceFilterDate,
   attendanceFilterStatus,
-  setAttendanceFilterStatus
+  setAttendanceFilterStatus,
+  admins = [],
+  onCreateAdmin
 }) {
   const selectedMember = members.find((member) => member.id === selectedMemberId) || members[0];
   const totalCapacity = 50; // Mock capacity

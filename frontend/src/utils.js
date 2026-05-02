@@ -11,7 +11,15 @@ export function formatDateOnly(value) {
     return "N/A";
   }
 
-  return new Date(`${value}T00:00:00Z`).toLocaleDateString();
+  // If it's already a full ISO string, just take the date part
+  const datePart = value.includes("T") ? value.split("T")[0] : value;
+  const date = new Date(`${datePart}T00:00:00Z`);
+  
+  if (isNaN(date.getTime())) {
+    return "Invalid Date";
+  }
+
+  return date.toLocaleDateString();
 }
 
 export function maskToken(token) {

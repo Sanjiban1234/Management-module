@@ -51,16 +51,32 @@ export async function apiRequest(path, { method = "GET", body, token } = {}) {
     throw new Error("VITE_API_BASE_URL is not configured.");
   }
 
+  // Ensure Base URL doesn't have a trailing slash
+  const cleanBase = API_BASE_URL.endsWith("/") 
+    ? API_BASE_URL.slice(0, -1) 
+    : API_BASE_URL;
+
+  // Ensure path starts with a slash
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+
   const authToken = await resolveAuthToken(token);
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      ...(authToken && { Authorization: `Bearer ${authToken}` })
-    },
-    body: body ? JSON.stringify(body) : undefined
-  });
+  try {
+    const response = await fetch(`${cleanBase}${cleanPath}`, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        ...(authToken && { Authorization: `Bearer ${authToken}` })
+      },
+      body: body ? JSON.stringify(body) : undefined
+    });
 
-  return parseResponse(response);
+    return await parseResponse(response);
+  } catch (error) {
+    // Catch Network/CORS errors explicitly
+    if (error.message === "Failed to fetch") {
+      throw new Error(`Cannot connect to server at ${cleanBase}. Please check your internet or CORS settings.`);
+    }
+    throw error;
+  }
 }
